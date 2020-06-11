@@ -1,0 +1,30 @@
+.chat-main
+  .chat-main__group-info
+    .chat-main__group-info_left-box 
+      %h2.chat-main__group-info-name
+        = @group.name
+      %ul.chat-main__group-info-member-list
+        - @group.users.each do |user|
+          = user.name
+    = link_to edit_group_path(@group) do
+      .chat-main__group-info_edit-btn
+        Edit
+  .chat-main__message-list
+    = render @messages
+    .chat-main__message-list-info
+      .chat-main__message-data
+      %p.chat-main__message-list-info-name
+        test
+      %p.chat-main__message-list-info-time
+        2020/06/03(Wed) 20:07:27
+    %p.chast-main__message-list-info-comments
+      ok
+      
+  .chat-main__message-form
+    = form_for [@group, @message] do |f|
+      = f.text_field :content,class:'chat-main__message-form__new-message', placeholder: 'type a message'
+      = f.label :image, class: 'chat-main__message-form__input-box__image' do
+        = icon('fas', 'image', class: 'icon')
+        = f.file_field :image, class: 'hidden'
+      = f.submit 'Send', class: 'chat-main__message-form__submit'
+
