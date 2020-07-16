@@ -1,6 +1,6 @@
 $(function(){
   function buildHTML(message){
-    if ( message.image ) {
+      if ( message.image ) {
         //data-idが反映されるようにしている
         var html =
          `<div class="message" data-message-id=${message.id}>
@@ -67,36 +67,31 @@ $(function(){
       alert("メッセージ送信に失敗しました");
   });
  })
-   var reloadMessages = function() {
-  //カスタムデータ属性を利用し、ブラウザに表示されている最新メッセージのidを取得
-    var last_message_id = $('.message:last').data("message-id");
-    $.ajax({
-    //ルーティングで設定した通り/groups/id番号/api/messagesとなるよう文字列を書く
-      url: "api/messages",
-    //ルーティングで設定した通りhttpメソッドをgetに指定
-    type: 'get',
-    dataType: 'json',
-    //dataオプションでリクエストに値を含める
-    data: {id: last_message_id}
-  })
-  .done(function(messages) {
-    if (messages.length !== 0) {
-     //追加するHTMLの入れ物を作る
-     var insertHTML = '';
-     //配列messagesの中身一つ一つを取り出し、HTMLに変換したものを入れ物に足し合わせる
-     $.each(messages, function(i, message) {
-       insertHTML += buildHTML(message)
-     });
-     //メッセージが入ったHTMLに、入れ物ごと追加
-     $('.messages').append(insertHTML);
-     $('.messages').animate({ scrollTop: $('.messages')[0].scrollHeight});
-      }
-  })
-  .fail(function() {
-    alert('error');
-    if (document.location.href.match(/\/groups\/\d+\/messages/)) {
-      setInterval(reloadMessages, 7000);
+
+ $(function(){
+  var reloadMessages = function(){  //自動更新の関数
+    if (window.location.href.match(/\/groups\/\d+\/messages/)){ //今いるページのリンクが/groups/グループid/messagesであれば以下を実行
+      var last_message_id = $('.message:last').data("message-id"); //dataメソッドで.messageにある:last(最後)のカスタムデータ属性を取得しlast_message_idに代入
+      $.ajax({
+        url: "api/messages", //サーバの指定(api/message_controller)
+        type: 'get', //メソッド(get)
+        dataType: 'json', //データの形式(json)
+        data: {id: last_message_id} //飛ばすデータ(取得したlast_message_id)
+      })
+      .done(function(messages){ //自動更新成功の時の処理(controllerから受け取ったmessageを引数にする)
+        var insertHTML = ''; //HTMLの入れ物
+        messages.forEach(function(message){ //配列messagesの中身一つ一つをHTMLに変換して入れ物に足し合わせる
+          insertHTML = buildHTML(message); //メッセージが入ったHTMLを取得 
+          $(".chat-main__message-list").append(insertHTML); //メッセージを追加
+          $('.chat-main__message-list').animate({scrollTop: $('.chat-main__message-list')[0].scrollHeight}, 50); //自動更新が成功した時(メッセージが送信できた時)のみ一番下までスクロールする
+        })
+      })
+
+      .fail(function(){ //自動更新が失敗した時の処理
+        alert('自動更新に失敗しました'); //アラートを出す
+      });
     }
-  });
- };
+  };
+  setInterval(reloadMessages, 7000); //7000ミリ秒(7秒)ごとにreloadMessages(自動更新の関数)を実行
+});
 });
